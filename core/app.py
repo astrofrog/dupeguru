@@ -24,6 +24,7 @@ from hscommon.gui.progress_window import ProgressWindow
 from hscommon.util import (delete_if_empty, first, escape, nonone, format_time_decimal, allsame,
     rem_file_ext)
 from hscommon.trans import tr
+from hscommon.plat import ISWINDOWS
 
 from . import directories, results, scanner, export, fs
 from .gui.deletion_options import DeletionOptions
@@ -58,8 +59,10 @@ JOBID2TITLE = {
     JobType.Load: tr("Loading"),
     JobType.Move: tr("Moving"),
     JobType.Copy: tr("Copying"),
-    JobType.Delete: tr("Sending files to the recycle bin"),
+    JobType.Delete: tr("Sending to Trash"),
 }
+if ISWINDOWS:
+    JOBID2TITLE[JobType.Delete] = tr("Sending files to the recycle bin")
 
 def format_timestamp(t, delta):
     if delta:
@@ -244,6 +247,7 @@ class DupeGuru(RegistrableApplication, Broadcaster):
             self.view.show_message(msg)
     
     def _job_completed(self, jobid):
+        print("complete!", jobid)
         if jobid == JobType.Scan:
             self._results_changed()
             if not self.results.groups:
@@ -452,6 +456,7 @@ class DupeGuru(RegistrableApplication, Broadcaster):
     def load_from(self, filename):
         def do(j):
             self.results.load_from_xml(filename, self._get_file, j)
+            print("load finished")
         self._start_job(JobType.Load, do)
     
     def make_selected_reference(self):
